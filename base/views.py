@@ -1,4 +1,5 @@
 from asyncio.windows_events import NULL
+from pydoc import describe
 from pydoc_data.topics import topics
 from django.http import HttpResponse
 from django.contrib.auth.forms import UserCreationForm
@@ -63,14 +64,23 @@ def room(request, pk):
 @login_required(login_url='login-user')
 def createRoom(request):
     form = RoomForm()
+    topics=Topic.objects.all()
     if request.method == 'POST':
-        form = RoomForm(request.POST)
-        if form.is_valid():
-            room=form.save(commit=False)
-            room.host=request.user
-            room.save()
-            return redirect('home')
-    context = {'form': form}
+        topic_name=request.POST.get('topic')
+        topic,created =Topic.objects.get_or_create(name=topic_name)
+        Room.objects.create(
+            host=request.user,
+            topic=topic,
+            name=request.POST.get('name'),
+            description=request.POST.get('description'),
+        )
+        return redirect('home')
+        # if form.is_valid():
+        #     room=form.save(commit=False)
+        #     room.host=request.user
+        #     room.save()
+        #     return redirect('home')
+    context = {'form': form, 'topics': topics}
     return render(request, 'base/base_room.html', context)
 
 
@@ -78,6 +88,7 @@ def createRoom(request):
 def updateRoom(request, pk):
     room = Room.objects.get(id=pk)
     form = RoomForm(instance=room)
+    topics = Topic.objects.all()
     if request.user != room.host:
         return HttpResponse('You are not Allowed Here')
     if request.method == 'POST':
@@ -85,7 +96,7 @@ def updateRoom(request, pk):
         if form.is_valid():
             form.save()
             return redirect('home')
-    context = {'form': form}
+    context = {'form': form, 'topics': topics}
     return render(request, 'base/base_room.html', context)
 
 
