@@ -1,22 +1,14 @@
-from asyncio.windows_events import NULL
-from pydoc import describe
-from pydoc_data.topics import topics
+import email
+from turtle import update
 from django.http import HttpResponse
-from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
-from .models import Message, Room, Topic,Message
+from .models import Message, Room, Topic,Message,User
 from django.db.models import Q
-from .forms import RoomForm
+from .forms import RoomForm, UserForm, MyUserCreationForm
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.contrib import messages
 # Create your views here.
-
-# rooms=[{'id':1,'name':'Learn Python'},
-#       {'id':2,'name':'Design with me'},
-#       {'id': 3, 'name': 'Frontend Developer'},
-#     ]
 
 
 def home(request):
@@ -27,7 +19,7 @@ def home(request):
         Q(description__icontains=q)
     )
     room_count = rooms.count()
-    topics = Topic.objects.all()
+    topics = Topic.objects.all()[0:5]
     room_messages = Message.objects.filter(Q(room__topic__name__icontains=q))
     context = {'rooms': rooms, 'topics': topics,
             'room_count': room_count,
@@ -49,6 +41,7 @@ def room(request, pk):
     room = Room.objects.get(id=pk)
     room_messages=room.message_set.all().order_by('created')
     participants = room.participants.all()
+    update=False
     if request.method=='POST':
         message=Message.objects.create(
             User=request.user,
@@ -57,7 +50,7 @@ def room(request, pk):
         )
         room.participants.add(request.user)
         return redirect('room',pk=room.id)
-    context = {'room': room,'room_messages':room_messages,'participants':participants}
+    context = {'room': room,'room_messages':room_messages,'participants':participants,'update':update}
     return render(request, 'base/room.html', context)
 
 
@@ -92,11 +85,14 @@ def updateRoom(request, pk):
     if request.user != room.host:
         return HttpResponse('You are not Allowed Here')
     if request.method == 'POST':
-        form = RoomForm(request.POST, instance=room)
-        if form.is_valid():
-            form.save()
-            return redirect('home')
-    context = {'form': form, 'topics': topics}
+        topic_name = request.POST.get('topic')
+        topic,created =Topic.objects.get_or_create(name=topic_name)
+        room.topic = topic
+        room.name=request.POST.get('name')
+        room.description=request.POST.get('description')
+        room.save()
+        return redirect('home')
+    context = {'form': form, 'topics': topics ,'room':room}
     return render(request, 'base/base_room.html', context)
 
 
@@ -116,13 +112,13 @@ def loginUser(request):
     if request.user.is_authenticated:
         return redirect('home')
     if request.method == 'POST':
-        username = request.POST.get('username').lower()
+        email = request.POST.get('email').lower()
         password = request.POST.get('password')
         try:
-            user = User.objects.get(username=username)
+            user = User.objects.get(email=email)
         except:
             messages.error(request, 'User Does Not Exist')
-        user = authenticate(request, username=username, password=password)
+        user = authenticate(request, email=email, password=password)
         if user is not None:
             login(request, user)
             return redirect('home')
@@ -137,10 +133,10 @@ def logoutUser(request):
     return redirect('home')
 
 def registerUser(request):
-    form=UserCreationForm()
+    form=MyUserCreationForm()
     page='register-user'
     if request.method=='POST':
-        form = UserCreationForm(request.POST)
+        form = MyUserCreationForm(request.POST)
         if form.is_valid():
             user=form.save(commit=False)
             user.username=user.username.lower()
@@ -165,13 +161,41 @@ def deleteMessage(request, pk):
 
 
 
-# @login_required(login_url='login-user')
-# def updateMessage(request, pk):
-#     message = Message.objects.get(id=pk)
-#     if request.user != message.User:
-#         return HttpResponse('You are not Allowed Here')
-#     if request.method == 'POST':
-#         message.body = request.POST.get('body')
-#         return redirect('home')
-#     context = {}
-#     return render(request, 'base/update_message.html', context)
+@login_required(login_url='login-user')
+def updateMessage(request, pk):
+    user_message = Message.objects.get(id=pk)
+    room=user_message.room
+    room_messages = room.message_set.all().order_by('created')
+    participants = room.participants.all()
+    update=True
+    if request.user != user_message.User:
+        return HttpResponse('You are not Allowed Here')
+    if request.method == 'POST':
+        user_message.body = request.POST.get('body')
+        room_id= user_message.room.id
+        user_message.save()
+        return redirect('room',pk=room_id)
+    context = {'room': room, 'room_messages': room_messages,
+               'update': update, 'participants': participants}
+    return render(request, 'base/room.html', context)
+
+@login_required(login_url='login-user')
+def updateUser(request):
+    user=request.user
+    form=UserForm(instance=user)
+    if request.method=='POST':
+        form=UserForm(request.POST,request.FILES,instance=user)
+        if form.is_valid():
+            form.save()
+            return redirect('user-profile',pk=user.id)
+    return render(request,'base/update_user.html',{'form':form})
+
+
+def topicPage(request):
+    q = request.GET.get('q') if request.GET.get('q') != None else ''
+    topics=Topic.objects.filter(name__icontains=q)
+    return render(request,'base/topics.html',{'topics':topics})
+
+def activityPage(request):
+    room_messages=Message.objects.all()
+    return render(request,'base/activity.html',{'room_messages':room_messages})
