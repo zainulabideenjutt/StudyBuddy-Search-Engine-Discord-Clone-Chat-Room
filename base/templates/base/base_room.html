@@ -5,7 +5,7 @@
     <div class="layout__box">
       <div class="layout__boxHeader">
         <div class="layout__boxTitle">
-          <a href="{% url 'home' %}">
+          <a href="{{request.META.HTTP_REFERER}}">
             <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
               <title>arrow-left</title>
               <path
@@ -13,14 +13,18 @@
               </path>
             </svg>
           </a>
-          <h3>Create/Update Study Room</h3>
+          {% if update %}
+          <h3>Update Study Room</h3>
+          {% else %}
+          <h3>Create Study Room</h3>
+          {% endif %}
         </div>
       </div>
       <div class="layout__body">
         <form class="form" action="#" method="post">
           {% csrf_token %}
           <div class="form__group">
-            <label for="room_topic" >Room Topic</label>
+            <label for="room_topic">Room Topic</label>
             <input required type="text" value="{{room.topic}}" name="topic" list="topic-list">
             <datalist id="topic-list">
               <select id="room_topic">
@@ -29,11 +33,11 @@
                 {% endfor %}
               </select>
             </datalist>
-          </div>          
+          </div>
           <div class="form__group">
             <label for="room_name">Room Name</label>
             {{form.name}}
-          </div>          
+          </div>
           <div class="form__group">
             <label for="room_description">Room Description</label>
             {{form.description}}
@@ -59,7 +63,13 @@
           </div> -->
           <div class="form__action">
             <a class="btn btn--dark" href="{{request.META.HTTP_REFERER}}">Cancel</a>
-            <button class="btn btn--main" type="submit">Create Room</button>
+            <button class="btn btn--main" type="submit">
+              {% if update %}
+              Update Study Room
+              {% else %}
+              Create Study Room
+              {% endif %}
+            </button>
           </div>
         </form>
       </div>

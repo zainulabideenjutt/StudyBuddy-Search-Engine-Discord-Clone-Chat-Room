@@ -42,15 +42,22 @@ def room(request, pk):
     room_messages=room.message_set.all().order_by('created')
     participants = room.participants.all()
     update=False
+    is_user_anonymous=False
     if request.method=='POST':
-        message=Message.objects.create(
-            User=request.user,
-            room=room,
-            body=request.POST.get('body')
-        )
-        room.participants.add(request.user)
-        return redirect('room',pk=room.id)
-    context = {'room': room,'room_messages':room_messages,'participants':participants,'update':update}
+        if request.user.is_authenticated:
+            message=Message.objects.create(
+                User=request.user,
+                room=room,
+                body=request.POST.get('body')
+            )
+            room.participants.add(request.user)
+            return redirect('room',pk=room.id)
+        else:
+            is_user_anonymous=True
+    if is_user_anonymous:
+        context = {'room': room,'room_messages':room_messages,'participants':participants,'update':update,'is_user_anonymous':is_user_anonymous}
+    else:
+        context = {'room': room,'room_messages':room_messages,'participants':participants,'update':update}
     return render(request, 'base/room.html', context)
 
 
@@ -58,6 +65,7 @@ def room(request, pk):
 def createRoom(request):
     form = RoomForm()
     topics=Topic.objects.all()
+    update=False
     if request.method == 'POST':
         topic_name=request.POST.get('topic')
         topic,created =Topic.objects.get_or_create(name=topic_name)
@@ -73,7 +81,7 @@ def createRoom(request):
         #     room.host=request.user
         #     room.save()
         #     return redirect('home')
-    context = {'form': form, 'topics': topics}
+    context = {'form': form, 'topics': topics,'update':update}
     return render(request, 'base/base_room.html', context)
 
 
@@ -82,6 +90,7 @@ def updateRoom(request, pk):
     room = Room.objects.get(id=pk)
     form = RoomForm(instance=room)
     topics = Topic.objects.all()
+    update=True
     if request.user != room.host:
         return HttpResponse('You are not Allowed Here')
     if request.method == 'POST':
@@ -92,7 +101,7 @@ def updateRoom(request, pk):
         room.description=request.POST.get('description')
         room.save()
         return redirect('home')
-    context = {'form': form, 'topics': topics ,'room':room}
+    context = {'form': form, 'topics': topics ,'room':room ,'update':update}
     return render(request, 'base/base_room.html', context)
 
 
@@ -176,7 +185,7 @@ def updateMessage(request, pk):
         user_message.save()
         return redirect('room',pk=room_id)
     context = {'room': room, 'room_messages': room_messages,
-               'update': update, 'participants': participants}
+               'update': update, 'participants': participants ,'user_message':user_message}
     return render(request, 'base/room.html', context)
 
 @login_required(login_url='login-user')
@@ -188,7 +197,7 @@ def updateUser(request):
         if form.is_valid():
             form.save()
             return redirect('user-profile',pk=user.id)
-    return render(request,'base/update_user.html',{'form':form})
+    return render(request,'base/update_user.html',{'form':form}) 
 
 
 def topicPage(request):
