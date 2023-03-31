@@ -1,11 +1,18 @@
 {% extends 'main.html' %} {% block content %}
+{% if is_user_anonymous%}
+<div style="text-align: center;padding-top: 1rem;">Please Login to Register Your Message <a href="{% url 'login-user' %}"><button class="btn btn--main">Login</button></a></div>
+{% endif %}
 <main class="profile-page layout layout--2">
-  <div class="container">
+  <div class="container" ">
     <!-- Room Start -->
     <div class="room">
       <div class="room__top">
         <div class="room__topLeft">
+          {% if update %}
+          <a href="{{ request.META.HTTP_REFERER}}">
+          {% else %}
           <a href="{% url 'home' %}">
+          {% endif %}
             <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
               <title>arrow-left</title>
               <path
@@ -68,7 +75,21 @@
         <div class="room__conversation">
           <div class="threads scroll">
             {% if update %}
-            <h3 style="padding-top: 3%;">Update Message</h3>
+            <div class="thread">
+              
+              <div class="thread__top">
+                <div class="thread__author">
+                  <a href="{% url 'user-profile' user_message.User.id %}" class="thread__authorInfo">
+                    <div class="avatar avatar--small">
+                      <img src="{{user_message.User.avatar.url}}" />
+                    </div>
+                    <span>@{{user_message.User.username}}</span>
+                  </a>
+                  <span class="thread__date">{{user_message.created|timesince}}</span>
+                </div>
+              </div>
+              <div class="thread__details">{{user_message.body}}</div>
+            </div>
             {% else %}
             {% for message in room_messages %}
             <div class="thread">
@@ -122,13 +143,14 @@
         </div>
       </div>
       <div class="room__message">
-        <form action="" method="post">
+        <form action="" method="post" style="display: flex;">
           {% csrf_token %}
           {% if update %}
-          <input name="body" placeholder="Write your Message to Update ...." />
+          <input style="width: 90%;" name="body" value="{{user_message}}" placeholder="Write your Message to Update ...." />
           {% else %}
-          <input name="body" placeholder="Write your message here..." />
+          <input style="width: 90%;" name="body" placeholder="Write your message here..." />
           {% endif %}
+          <input style="width: 10%; background-color: #46A0D4; color: #000;" class="btn btn--main" type="submit" value="submit">
         </form>
       </div>
     </div>

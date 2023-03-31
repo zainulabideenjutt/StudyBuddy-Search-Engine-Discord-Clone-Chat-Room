@@ -1,2 +1,5 @@
 /env
 /theme
+base/__pycache__
+studybud/__pycache__
+base/migrations/__pycache__
