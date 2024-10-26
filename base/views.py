@@ -1,5 +1,3 @@
-import email
-from turtle import update
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
@@ -12,6 +10,7 @@ from django.contrib import messages
 
 
 def home(request):
+    #
     q = request.GET.get('q') if request.GET.get('q') != None else ''
     rooms = Room.objects.filter(
         Q(topic__name__icontains=q) |
@@ -20,7 +19,7 @@ def home(request):
     )
     room_count = rooms.count()
     topics = Topic.objects.all()[0:5]
-    room_messages = Message.objects.filter(Q(room__topic__name__icontains=q))
+    room_messages = Message.objects.filter(Q(room__topic__name__icontains=q))[:3]
     context = {'rooms': rooms, 'topics': topics,
             'room_count': room_count,
             'room_messages': room_messages,
@@ -90,7 +89,7 @@ def updateRoom(request, pk):
     room = Room.objects.get(id=pk)
     form = RoomForm(instance=room)
     topics = Topic.objects.all()
-    update=True
+    update=True 
     if request.user != room.host:
         return HttpResponse('You are not Allowed Here')
     if request.method == 'POST':
