@@ -1,4 +1,67 @@
+# Virtual Environments
 /env
-/theme
-__pycache__
+venv
+.env
+.venv
+env/
+ENV/
+
+# Django
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
 db.sqlite3
+db.sqlite3-journal
+local_settings.py
+media/
+
+# Migrations - uncomment if you want to ignore migrations
+base/migrations/
+
+# Static files
+staticfiles/
+static/admin/
+
+# Logs
+*.log
+logs/
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+*.code-workspace
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Translations
+*.mo
+*.pot
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Theme files
+/theme

@@ -7,8 +7,6 @@ from .forms import RoomForm, UserForm, MyUserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 # Create your views here.
-
-
 def home(request):
     #
     q = request.GET.get('q') if request.GET.get('q') != None else ''
@@ -38,25 +36,15 @@ def userProfile(request,pk):
 
 def room(request, pk):
     room = Room.objects.get(id=pk)
-    room_messages=room.message_set.all().order_by('created')
+    room_messages = room.message_set.all().order_by('created')
     participants = room.participants.all()
-    update=False
-    is_user_anonymous=False
-    if request.method=='POST':
-        if request.user.is_authenticated:
-            message=Message.objects.create(
-                User=request.user,
-                room=room,
-                body=request.POST.get('body')
-            )
-            room.participants.add(request.user)
-            return redirect('room',pk=room.id)
-        else:
-            is_user_anonymous=True
-    if is_user_anonymous:
-        context = {'room': room,'room_messages':room_messages,'participants':participants,'update':update,'is_user_anonymous':is_user_anonymous}
-    else:
-        context = {'room': room,'room_messages':room_messages,'participants':participants,'update':update}
+    context = {
+        'room': room,
+        'room_messages': room_messages,
+        'participants': participants,
+        'update': False,
+        'is_user_anonymous': not request.user.is_authenticated
+    }
     return render(request, 'base/room.html', context)
 
 
@@ -75,11 +63,6 @@ def createRoom(request):
             description=request.POST.get('description'),
         )
         return redirect('home')
-        # if form.is_valid():
-        #     room=form.save(commit=False)
-        #     room.host=request.user
-        #     room.save()
-        #     return redirect('home')
     context = {'form': form, 'topics': topics,'update':update}
     return render(request, 'base/base_room.html', context)
 

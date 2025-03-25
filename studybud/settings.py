@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -44,11 +45,13 @@ INSTALLED_APPS = [
 
     'rest_framework',
 ]
-AUTH_USER_MODEL='base.User'
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
+AUTH_USER_MODEL = 'base.User'
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
-
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -64,7 +67,8 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            BASE_DIR / 'templates'
+            BASE_DIR / 'templates',
+            BASE_DIR / 'base' / 'templates' / 'base',
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -78,8 +82,16 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'studybud.wsgi.application'
+# WSGI_APPLICATION = 'studybud.wsgi.application'
 
+# 👇 4. Add the below line for asgi config
+ASGI_APPLICATION = 'studybud.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': "channels.layers.InMemoryChannelLayer"
+    }
+}
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
@@ -109,6 +121,7 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+NPM_BIN_PATH = 'C:\\Program Files\\nodejs\\npm.cmd'
 
 
 # Internationalization
@@ -127,14 +140,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 STATIC_URL = 'static/'
-MEDIA_URL='/images/'
-STATICFILES_DIRS=[
+MEDIA_URL = '/images/'
+STATICFILES_DIRS = [
     BASE_DIR / 'static'
 ]
-MEDIA_ROOT =BASE_DIR / 'static/images'
+MEDIA_ROOT = BASE_DIR / 'static/images'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-CORS_ALLOW_ALL_ORIGINS=True
+CORS_ALLOW_ALL_ORIGINS = True

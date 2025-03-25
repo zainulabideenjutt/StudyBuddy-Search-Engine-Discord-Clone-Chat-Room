@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .api import views as api_views
 
 urlpatterns=[
     path('',views.home,name='home'),
@@ -19,4 +20,7 @@ urlpatterns=[
 
     path('topic-page/',views.topicPage,name='topic-page'),
     path('activity-page/',views.activityPage,name='activity-page'),
+
+    path('api/room/<str:pk>/', api_views.room_api, name='room-api'),
+    path('api/message/<str:pk>/', api_views.message_api, name='message-api'),
 ]
